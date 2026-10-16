@@ -1,6 +1,6 @@
-# Number Theory: Addition
+# Number Theory: Subtraction
 
-In this lab you've learned the basics of number theory as it relates to addition.
+In this lab you've learned the basics of number theory as it relates to subtraction.
 
 ## Rubric
 
@@ -11,16 +11,15 @@ In this lab you've learned the basics of number theory as it relates to addition
 | Question 2 | Your answers to the question | 25% |
 | Question 3 | Your answers to the question | 25% |
 
+## Names
+Ayman Arefin
+## Summary
+In this lab we used vivado to simulate adding negative numbers using ones and twos compliments and we created half subtractors.
 ## Lab Questions
 
-Summary: We used XOR and AND gates to simulate various simulations such as a 2 light switches or a simple 2 bit adder. Then we created the boolean logic in verlog and implemented it into the basys board.
+### 1 - Explain the differences between our Half Adder from last lab and the Half Subtractor from this lab.
 
-### 1 - How might you add more than two bits together?
-Use more full adders
+### 2 - What about the end around carry of One’s Complement makes it hard to use and implement?
 
-### 2 - What is the importance of the XOR gate in an adder?
-The XOR gate gives us the SUM value.
+### 3 - What is the edge case and problem with Two’s Complement number representation?
 
-### 3 - What is the largest number a two bit adder can handle? What happens when you go over?
-
-7.If it goes over then it becomes overflow.
