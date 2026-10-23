@@ -1,26 +1,29 @@
 module top(
-input [9:0]sw,
-output [13:0]led
-
+input [15:0]sw,
+input btnL, btnU, btnD, btnR, btnC,
+output [15:0]led
 );
 
-half_sub subtractor(
-.A(sw[0]),
-.B(sw[1]),
-.Y(led[0]),
-.Borrow(led[1])
+wire [3:0]Person;
+Mux(
+.Sel({btnU, btnL}),
+.Enable(btnC),
+.CEO(sw[3:0]),
+.YOU(sw[7:4]),
+.FRED(sw[11:8]),
+.JILL(sw[15:12]),
+.Y(Person)
 );
 
 
-ones_compliment oc(
-.A(sw[5:2]),
-.B(sw[9:6]),
-.Y(led[5:2])
+DeMux (
+.Sel({btnR, btnD}),
+.Enable(btnC),
+.In(Person),
+.Lib(led[3:0]),
+.Fire(led[7:4]),
+.School(led[11:8]),
+.Rib(led[15:12])
 
-);
-
-twos_compliment tc(
-.A(sw[9:2]),
-.Y(led[13:6])
 );
 endmodule

@@ -1,119 +1,69 @@
-`timescale 1ns / 1ps
+`timescale 1ns/1ps
 
-// Top level of test, think of this like
-// top.v but for simulation
 module test();
-    reg [9:0] sw;
-    wire [13:0] leds;
+    wire [15:0] led;
+    reg [15:0] sw;
+    reg btnl, btnu, btnd, btnr, btnc;
 
-    // Instantiate the Unit Under Test (UUT)
-    // This is our code being "plugged in"
-    // to the simulation
-    // We are wiring up fake switches and
-    // LEDs
-    top uut (
+    top uut(
+        .led(led),
         .sw(sw),
-        .led(leds)
+        .btnL(btnl),
+        .btnU(btnu),
+        .btnD(btnd),
+        .btnR(btnr),
+        .btnC(btnc)
     );
-    
-    // Error Tracking
-    integer error_count = 0;
-    
-    // Tasks are like onto functions
-    // We have spent this whole time talking about
-    // how Verilog isn't a programming language
-    // However, there is an aspect to it that is,
-    // and that is simulation.
-    // Simulations do have actual flow and programming,
-    // but still use the Verilog syntax
-    
-    // Task to test half_sub module
-    task test_half_sub(input a, input b);
-        reg expected_y;
-        reg expected_b_out;
-        begin
-            // Assign inputs
-            sw[0] = a;
-            sw[1] = b;
-            #10; // Wait for some time for output to settle
-            
-            expected_y =  a ^ b;
-            expected_b_out = ~a & b;
-            #10; // Wait for some time for output to settle
 
-            // Check results
-            if (leds[0] === expected_y && leds[1] === expected_b_out) 
-                $display("half_sub Test Passed: A=%b, B=%b => Y=%b, B_out=%b", a, b, leds[0], leds[1]);
-            else begin
-                error_count = error_count + 1;
-                $error("half_sub Test Failed: A=%b, B=%b => Y=%b, B_out=%b (Expected Y=%b, B_out=%b)", 
-                         a, b, leds[0], leds[1], expected_y, expected_b_out);
-            end
-        end
-    endtask
-
-    // Task to test ones_complement module
-    task test_ones_compliment(input [3:0] a, input [3:0] b, input [3:0] expected_y);
-        begin
-            // Assign inputs
-            sw[5:2] = a;
-            sw[9:6] = b;
-            #10; // Wait for some time for output to settle
-            
-            // Check results
-            if (leds[5:2] === expected_y) 
-                $display("ones_compliment Test Passed: A=%b, B=%b => Y=%b", a, b, leds[5:2]);
-            else begin
-                error_count = error_count + 1;
-                $error("ones_compliment Test Failed: A=%b, B=%b => Y=%b (Expected Y=%b)", 
-                         a, b, leds[5:2], expected_y);
-            end
-        end
-    endtask
+    reg [4:0] i;
+    reg fail = 1'b0;
     
-    // Task to test twos_complement module
-    task test_twos_compliment(input [7:0] a);
-        reg [7:0] expected_y;
-        begin
-            // Assign input
-            sw[9:2] = a;
-            #10; // Wait for some time for output to settle
-            expected_y =~a+1;
-            #10; // Wait for some time for output to settle
-            // Check results
-            if (leds[13:6] === expected_y) 
-                $display("twos_compliment Test Passed: A=%b => Y=%b", a, leds[13:6]);
-            else begin
-                error_count = error_count + 1;
-                $error("twos_compliment Test Failed: A=%b => Y=%b (Expected Y=%b)", 
-                         a, leds[13:6], expected_y);
-            end
-        end
-    endtask
+    wire [1:0] mult_sel;
+    wire [1:0] demult_sel;
+    
+    wire [3:0] current_mult;
+    wire [3:0] current_demult;
+    
+    assign mult_sel = {btnu, btnl};
+    assign demult_sel = {btnr, btnd};
+    
+    assign current_mult = (sw >> (4 * mult_sel)) & 'hF;
+    assign current_demult = (led >> (4 * demult_sel)) & 'hF;
 
-    // Main test sequence
     initial begin
-        // Test Half Sub 
-        test_half_sub(0, 1); // 0 - 1 = 0, Borrow = 1
-
-        // Test One's Complement 
-        test_ones_compliment(4'b0101, 4'b0010, 4'b0111);    //(+5) + (+2) = (+7)
-        test_ones_compliment(4'b1010, 4'b0010, 4'b1100);    //(-5) + (+2) = (-3)
-        test_ones_compliment(4'b0101, 4'b1101, 4'b0011);    //(+5) + (-2) = (+3)
-        test_ones_compliment(4'b1010, 4'b1101, 4'b1000);    //(-5) + (-2) = (-7)
-
-        // Test twos_complement
-        test_twos_compliment(8'b01010111);
-        test_twos_compliment(8'b00000001);
-        test_twos_compliment(8'b00000010); 
-        test_twos_compliment(8'b00001000); 
+        $dumpvars(0, test);
+        sw = 'b0110_1010_0101_1001;
+        btnl = 0;
+        btnu = 0;
+        btnd = 0;
+        btnr = 0;
+        btnc = 0;
+        #10;
+        btnc = 1;
         
-        //Check if there are any failing testcases
-        if (error_count > 0)
-            $error("Failing Testcases! Check above messages for failing cases and fix them.");
+        $display("Mux Input for all testcases: sw[15:12] = %b , sw[11:8] = %b, sw[7:4] = %b, sw[3:0] = %b", sw[15:12], sw[11:8], sw[7:4], sw[3:0]);
+        
+        for (i = 0; i < 16; i = i + 1) begin
+            #10;
+            btnl = i[0];
+            btnu = i[1];
+            btnd = i[2];
+            btnr = i[3];
+            
+            $display ("Testcase %d: muxSel = %b , demuxSel = %b, Expected Output = %b, Observed Output = %b", 
+                        i, mult_sel, demult_sel, current_mult, current_demult);
+                        
+            if (current_mult !== current_demult) begin
+                fail = 1'b1;
+                $error("Observed output does not match expected output!");
+            end
+        end
+        
+        if (fail)
+            $error("Failing Testcases! Review above messages and fix the design."); 
         else
-            $display("All Testcases Passed!");
-        
-        #50 $finish;
+            $display ("All Testcases Passed!");
+            
+        #10 $finish;
     end
 endmodule
