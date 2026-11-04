@@ -8,6 +8,4 @@ module byte_memory(
  memory <= data;
 end
 
-
-
 endmodule
